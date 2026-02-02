@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ChainedPuzzles;
 using HarmonyLib;
 using Player;
@@ -8,8 +7,7 @@ namespace GTFO.LobbyExpansion.Patches.Harmony;
 [HarmonyPatch(typeof(CP_Bioscan_Sync))]
 public static class CP_Bioscan_SyncPatch
 {
-    [HarmonyPatch(nameof(CP_Bioscan_Sync.SetStateData),
-        [typeof(eBioscanStatus), typeof(float), typeof(List<PlayerAgent>), typeof(int), typeof(bool[])])]
+    [HarmonyPatch(nameof(CP_Bioscan_Sync.SetStateData))]
     [HarmonyPostfix]
     public static void SetStateData__Postfix(
         CP_Bioscan_Sync __instance,
