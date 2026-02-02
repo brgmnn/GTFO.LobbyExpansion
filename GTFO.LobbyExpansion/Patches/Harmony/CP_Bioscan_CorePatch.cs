@@ -1,6 +1,7 @@
 using ChainedPuzzles;
 using HarmonyLib;
 using Player;
+using UnityEngine;
 
 namespace GTFO.LobbyExpansion.Patches.Harmony;
 
@@ -35,6 +36,20 @@ public static class CP_Bioscan_CorePatch
                 {
                     localPlayerInScan = true;
                     break;
+                }
+            }
+        }
+
+        if (!localPlayerInScan)
+        {
+            if (PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
+            {
+                var scanner = __instance.m_PlayerScannerComp.TryCast<CP_PlayerScanner>();
+                if (scanner != null)
+                {
+                    float radius = scanner.Radius;
+                    float distSqr = (localPlayer.Position - __instance.transform.position).sqrMagnitude;
+                    localPlayerInScan = distSqr < radius * radius;
                 }
             }
         }
