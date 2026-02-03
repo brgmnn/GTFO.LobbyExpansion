@@ -13,9 +13,13 @@ public static class CP_Bioscan_CorePatch
     [HarmonyPostfix]
     public static void Setup__Postfix(CP_Bioscan_Core __instance)
     {
-        var hud = __instance.m_hud?.TryCast<CP_Bioscan_Hud>();
+        // Use m_HUDComp (public Component) instead of m_hud (private interface)
+        var hud = __instance.m_HUDComp?.TryCast<CP_Bioscan_Hud>();
         if (hud != null)
-            CP_Bioscan_HudPatch.HudToCoreMap[hud] = __instance;
+        {
+            CP_Bioscan_HudPatch.HudToCoreMap[hud.GetInstanceID()] = __instance;
+            L.Verbose($"Registered HUD mapping: {hud.GetInstanceID()} -> Core");
+        }
     }
 
     [HarmonyPatch("OnSyncStateChange")]
