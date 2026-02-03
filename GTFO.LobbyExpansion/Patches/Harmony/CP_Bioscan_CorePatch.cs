@@ -9,6 +9,15 @@ namespace GTFO.LobbyExpansion.Patches.Harmony;
 [HarmonyPatch(typeof(CP_Bioscan_Core))]
 public static class CP_Bioscan_CorePatch
 {
+    [HarmonyPatch(nameof(CP_Bioscan_Core.Setup))]
+    [HarmonyPostfix]
+    public static void Setup__Postfix(CP_Bioscan_Core __instance)
+    {
+        var hud = __instance.m_hud?.TryCast<CP_Bioscan_Hud>();
+        if (hud != null)
+            CP_Bioscan_HudPatch.HudToCoreMap[hud] = __instance;
+    }
+
     [HarmonyPatch("OnSyncStateChange")]
     [HarmonyPostfix]
     public static void OnSyncStateChange__Postfix(
