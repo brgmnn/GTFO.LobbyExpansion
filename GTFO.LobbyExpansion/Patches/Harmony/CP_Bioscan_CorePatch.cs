@@ -28,31 +28,26 @@ public static class CP_Bioscan_CorePatch
 
         L.LogExecutingMethod();
 
-        bool localPlayerInScan = false;
-        if (__instance.enabled && playersInScan != null)
-        {
-            for (int i = 0; i < listCount; i++)
-            {
-                if (playersInScan[i] != null && playersInScan[i].IsLocallyOwned)
-                {
-                    localPlayerInScan = true;
-                    break;
-                }
-            }
-        }
+        // Preserve what the original method already computed (with proper Unity null checks)
+        bool localPlayerInScan = __instance.m_hud.m_localPlayerInScan;
 
+        // Fallback: if local player wasn't in the truncated 4-slot list, check by distance
         if (!localPlayerInScan)
         {
-            if (PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
+            try
             {
-                var scanner = __instance.m_PlayerScannerComp.TryCast<CP_PlayerScanner>();
-                if (scanner != null)
+                if (PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
                 {
-                    float radius = scanner.Radius;
-                    float distSqr = (localPlayer.Position - __instance.transform.position).sqrMagnitude;
-                    localPlayerInScan = distSqr < radius * radius;
+                    var scanner = __instance.m_PlayerScannerComp.TryCast<CP_PlayerScanner>();
+                    if (scanner != null)
+                    {
+                        float radiusSqr = scanner.m_scanRadiusSqr;
+                        float distSqr = (localPlayer.Position - scanner.transform.position).sqrMagnitude;
+                        localPlayerInScan = distSqr < radiusSqr;
+                    }
                 }
             }
+            catch { /* Preserve original value if fallback fails */ }
         }
 
         __instance.m_hud.SetPlayerData(
