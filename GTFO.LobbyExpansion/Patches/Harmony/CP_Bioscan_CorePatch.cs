@@ -30,11 +30,14 @@ public static class CP_Bioscan_CorePatch
         List<PlayerAgent> playersInScan,
         int playersMax)
     {
-        if (status != eBioscanStatus.Scanning)
-            return;
-
         int actualCount = __instance.m_sync.GetCurrentState().playersInScan;
         int listCount = playersInScan?.Count ?? 0;
+
+        L.Verbose($"OnSyncStateChange: status={status}, puzzleIndex={__instance.m_puzzleIndex}");
+        L.Verbose($"  actualCount={actualCount}, listCount={listCount}, playersMax={playersMax}");
+
+        if (status != eBioscanStatus.Scanning)
+            return;
 
         if (actualCount <= listCount)
             return;
