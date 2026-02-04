@@ -21,7 +21,7 @@ public static class CP_Bioscan_HudPatch
 
         var expanded = new string[PluginConfig.MaxPlayers];
         for (var i = 0; i < PluginConfig.MaxPlayers; i++)
-            expanded[i] = ((char)('A' + i)).ToString();
+            expanded[i] = PluginConfig.GetBioscanLetter(i);
 
         __instance.m_progressBarPlayerChar = expanded;
     }

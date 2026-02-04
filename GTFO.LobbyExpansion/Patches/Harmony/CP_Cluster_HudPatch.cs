@@ -23,7 +23,7 @@ public static class CP_Cluster_HudPatch
         {
             var expanded = new string[PluginConfig.MaxPlayers];
             for (var i = 0; i < PluginConfig.MaxPlayers; i++)
-                expanded[i] = ((char)('A' + i)).ToString();
+                expanded[i] = PluginConfig.GetBioscanLetter(i);
             wrappedHud.m_progressBarPlayerChar = expanded;
             L.Verbose($"  Expanded wrapped HUD char array to {PluginConfig.MaxPlayers}");
         }
