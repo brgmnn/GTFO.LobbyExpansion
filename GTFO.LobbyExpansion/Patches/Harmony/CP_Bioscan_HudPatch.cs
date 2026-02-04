@@ -26,6 +26,13 @@ public static class CP_Bioscan_HudPatch
         __instance.m_progressBarPlayerChar = expanded;
     }
 
+    [HarmonyPatch(nameof(CP_Bioscan_Hud.OnDestroy))]
+    [HarmonyPostfix]
+    public static void OnDestroy__Postfix(CP_Bioscan_Hud __instance)
+    {
+        HudToCoreMap.Remove(__instance.GetInstanceID());
+    }
+
     [HarmonyPatch("Update")]  // Use string for private method
     [HarmonyPrefix]
     public static void Update__Prefix(CP_Bioscan_Hud __instance)
