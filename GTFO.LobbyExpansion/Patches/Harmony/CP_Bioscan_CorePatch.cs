@@ -23,6 +23,25 @@ public static class CP_Bioscan_CorePatch
     }
 
     [HarmonyPatch("OnSyncStateChange")]
+    [HarmonyPrefix]
+    public static void OnSyncStateChange__Prefix(
+        CP_Bioscan_Core __instance,
+        ref List<PlayerAgent> playersInScan)
+    {
+        // Get the actual player count from sync state
+        var actualCount = __instance.m_sync.GetCurrentState().playersInScan;
+
+        // If actual count exceeds list size, pad the list with nulls
+        // This ensures count == actualCount for movement checks
+        if (actualCount > playersInScan.Count)
+        {
+            L.Verbose($"Padding playersInScan list from {playersInScan.Count} to {actualCount}");
+            while (playersInScan.Count < actualCount)
+                playersInScan.Add(null);
+        }
+    }
+
+    [HarmonyPatch("OnSyncStateChange")]
     [HarmonyPostfix]
     public static void OnSyncStateChange__Postfix(
         CP_Bioscan_Core __instance,
