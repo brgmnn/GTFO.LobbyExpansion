@@ -23,25 +23,6 @@ public static class CP_Bioscan_CorePatch
     }
 
     [HarmonyPatch("OnSyncStateChange")]
-    [HarmonyPrefix]
-    public static void OnSyncStateChange__Prefix(
-        CP_Bioscan_Core __instance,
-        ref List<PlayerAgent> playersInScan)
-    {
-        // Get the actual player count from sync state
-        var actualCount = __instance.m_sync.GetCurrentState().playersInScan;
-
-        // If actual count exceeds list size, pad the list with nulls
-        // This ensures count == actualCount for movement checks
-        if (actualCount > playersInScan.Count)
-        {
-            L.Verbose($"Padding playersInScan list from {playersInScan.Count} to {actualCount}");
-            while (playersInScan.Count < actualCount)
-                playersInScan.Add(null);
-        }
-    }
-
-    [HarmonyPatch("OnSyncStateChange")]
     [HarmonyPostfix]
     public static void OnSyncStateChange__Postfix(
         CP_Bioscan_Core __instance,
@@ -58,6 +39,32 @@ public static class CP_Bioscan_CorePatch
         if (status != eBioscanStatus.Scanning)
             return;
 
+        // Fix travel scan movement when actual count exceeds list count
+        // The original method used listCount for the flag3 check, but we have
+        // the real count from sync state
+        if (actualCount > listCount && __instance.IsMovable)
+        {
+            var movingComp = __instance.m_movingComp;
+            if (movingComp != null && movingComp.OnlyMoveWhenScannig)
+            {
+                bool requireAll = __instance.m_playerScanner.ScanPlayersRequired.RequireAllPlayers();
+                bool requireSolo = __instance.m_playerScanner.ScanPlayersRequired.RequireSoloPlayer();
+                bool noRequirement = __instance.m_playerScanner.ScanPlayersRequired == PlayerRequirement.None;
+
+                // Recalculate flag1 using actual count instead of list count
+                bool shouldMove = noRequirement
+                    || (requireAll && actualCount == playersMax)
+                    || (requireSolo && actualCount == 1);
+
+                if (shouldMove)
+                {
+                    L.Verbose($"Resuming movement: actualCount={actualCount}, playersMax={playersMax}");
+                    movingComp.ResumeMovement();
+                }
+            }
+        }
+
+        // HUD fix: only needed when actual count exceeds list count
         if (actualCount <= listCount)
             return;
 
