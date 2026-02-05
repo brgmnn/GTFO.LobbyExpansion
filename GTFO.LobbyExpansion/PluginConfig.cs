@@ -117,4 +117,18 @@ public static class PluginConfig
 
         return ((char)('A' + index)).ToString();
     }
+
+    private static string[]? _bioscanLettersCache;
+
+    public static string[] GetBioscanLetters()
+    {
+        if (_bioscanLettersCache != null)
+            return _bioscanLettersCache;
+
+        _bioscanLettersCache = new string[MaxPlayers];
+        for (var i = 0; i < MaxPlayers; i++)
+            _bioscanLettersCache[i] = GetBioscanLetter(i);
+
+        return _bioscanLettersCache;
+    }
 }

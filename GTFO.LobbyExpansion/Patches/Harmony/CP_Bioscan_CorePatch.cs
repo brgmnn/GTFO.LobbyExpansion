@@ -95,7 +95,7 @@ public static class CP_Bioscan_CorePatch
         {
             if (PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
             {
-                var scanner = __instance.m_PlayerScannerComp.TryCast<CP_PlayerScanner>();
+                var scanner = __instance.m_PlayerScannerComp?.TryCast<CP_PlayerScanner>();
                 if (scanner != null)
                 {
                     float radius = scanner.Radius;

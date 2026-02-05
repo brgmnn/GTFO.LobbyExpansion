@@ -19,11 +19,7 @@ public static class CP_Bioscan_HudPatch
 
         L.Verbose($"Expanding {nameof(__instance.m_progressBarPlayerChar)} from {__instance.m_progressBarPlayerChar.Length} to {PluginConfig.MaxPlayers}.");
 
-        var expanded = new string[PluginConfig.MaxPlayers];
-        for (var i = 0; i < PluginConfig.MaxPlayers; i++)
-            expanded[i] = PluginConfig.GetBioscanLetter(i);
-
-        __instance.m_progressBarPlayerChar = expanded;
+        __instance.m_progressBarPlayerChar = PluginConfig.GetBioscanLetters();
     }
 
     [HarmonyPatch(nameof(CP_Bioscan_Hud.OnDestroy))]

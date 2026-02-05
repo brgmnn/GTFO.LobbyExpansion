@@ -21,10 +21,14 @@ public static class CP_Bioscan_SyncPatch
 
         // The switch statement in SetStateData only handles cases 1-4.
         // When count > 4, no player references are set, leaving stale data.
-        // Fill all 4 available struct slots with the first 4 players.
-        __instance.m_latestState.playerInScan1.SetPlayer(playersInScan[0].Owner);
-        __instance.m_latestState.playerInScan2.SetPlayer(playersInScan[1].Owner);
-        __instance.m_latestState.playerInScan3.SetPlayer(playersInScan[2].Owner);
-        __instance.m_latestState.playerInScan4.SetPlayer(playersInScan[3].Owner);
+        // Fill all 4 available struct slots with the first 4 players (with null checks).
+        if (playersInScan[0]?.Owner != null)
+            __instance.m_latestState.playerInScan1.SetPlayer(playersInScan[0].Owner);
+        if (playersInScan[1]?.Owner != null)
+            __instance.m_latestState.playerInScan2.SetPlayer(playersInScan[1].Owner);
+        if (playersInScan[2]?.Owner != null)
+            __instance.m_latestState.playerInScan3.SetPlayer(playersInScan[2].Owner);
+        if (playersInScan[3]?.Owner != null)
+            __instance.m_latestState.playerInScan4.SetPlayer(playersInScan[3].Owner);
     }
 }

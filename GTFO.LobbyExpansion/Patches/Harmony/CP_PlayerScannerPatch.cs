@@ -35,7 +35,9 @@ public static class CP_PlayerScannerPatch
     {
         L.LogExecutingMethod();
 
-        if (__instance.m_reqItemsEnabled || nrOccupiers >= PluginConfig.MaxPlayers)
+        // Clamp nrOccupiers to valid array bounds to prevent index out of range
+        int maxIndex = __instance.m_scanSpeeds.Length - 1;
+        if (__instance.m_reqItemsEnabled || nrOccupiers >= maxIndex)
         {
             __result = false;
             return HarmonyControlFlow.DontExecute;
