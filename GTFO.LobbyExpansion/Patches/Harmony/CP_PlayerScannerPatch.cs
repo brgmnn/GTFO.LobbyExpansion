@@ -11,11 +11,8 @@ public static class CP_PlayerScannerPatch
     [HarmonyPrefix]
     public static bool StartScan__Prefix(CP_PlayerScanner __instance)
     {
-        L.LogExecutingMethod();
-
         if (__instance.m_scanSpeeds.Length < PluginConfig.MaxPlayers)
         {
-            L.Verbose($"Expanding {nameof(__instance.m_scanSpeeds)} size from {__instance.m_scanSpeeds.Length} to {PluginConfig.MaxPlayers} to account for more players being in the scan.");
             var original = __instance.m_scanSpeeds;
             __instance.m_scanSpeeds = new Il2CppStructArray<float>(PluginConfig.MaxPlayers);
 
@@ -33,18 +30,16 @@ public static class CP_PlayerScannerPatch
         int nrOccupiers,
         ref bool __result)
     {
-        L.LogExecutingMethod();
-
         // Clamp nrOccupiers to valid array bounds to prevent index out of range
-        int maxIndex = __instance.m_scanSpeeds.Length - 1;
-        if (__instance.m_reqItemsEnabled || nrOccupiers >= maxIndex)
+        var maxIndex = __instance.m_scanSpeeds.Length - 1;
+
+        if (__instance.m_reqItemsEnabled || nrOccupiers >= maxIndex || nrOccupiers >= PluginConfig.MaxPlayers)
         {
             __result = false;
             return HarmonyControlFlow.DontExecute;
         }
 
-        __result = nrOccupiers == 0
-            || __instance.m_scanSpeeds[nrOccupiers - 1] < __instance.m_scanSpeeds[nrOccupiers];
+        __result = nrOccupiers == 0 || __instance.m_scanSpeeds[nrOccupiers - 1] < __instance.m_scanSpeeds[nrOccupiers];
         return HarmonyControlFlow.DontExecute;
     }
 }
