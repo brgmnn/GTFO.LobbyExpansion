@@ -39,10 +39,10 @@ public static class CP_Bioscan_CorePatch
         if (status != eBioscanStatus.Scanning)
             return;
 
-        // Fix travel scan movement when actual count exceeds list count
-        // The original method used listCount for the flag3 check, but we have
-        // the real count from sync state
-        if (actualCount > listCount && __instance.IsMovable)
+        // Fix travel scan movement - ALWAYS recalculate using actual count
+        // The original method uses listCount which is capped at 4 players,
+        // so we must recalculate the movement condition with the real count
+        if (__instance.IsMovable)
         {
             var movingComp = __instance.m_movingComp;
             if (movingComp != null && movingComp.OnlyMoveWhenScannig)
@@ -51,7 +51,7 @@ public static class CP_Bioscan_CorePatch
                 bool requireSolo = __instance.m_playerScanner.ScanPlayersRequired.RequireSoloPlayer();
                 bool noRequirement = __instance.m_playerScanner.ScanPlayersRequired == PlayerRequirement.None;
 
-                // Recalculate flag1 using actual count instead of list count
+                // Recalculate using actual count instead of list count
                 bool shouldMove = noRequirement
                     || (requireAll && actualCount == playersMax)
                     || (requireSolo && actualCount == 1);
@@ -60,6 +60,11 @@ public static class CP_Bioscan_CorePatch
                 {
                     L.Verbose($"Resuming movement: actualCount={actualCount}, playersMax={playersMax}");
                     movingComp.ResumeMovement();
+                }
+                else
+                {
+                    L.Verbose($"Pausing movement: actualCount={actualCount}, playersMax={playersMax}");
+                    movingComp.PauseMovement();
                 }
             }
         }
