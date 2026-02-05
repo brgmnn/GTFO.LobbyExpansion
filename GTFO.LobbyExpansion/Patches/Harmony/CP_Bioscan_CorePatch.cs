@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ChainedPuzzles;
 using HarmonyLib;
 using Player;
+using SNetwork;
 using UnityEngine;
 
 namespace GTFO.LobbyExpansion.Patches.Harmony;
@@ -30,28 +31,30 @@ public static class CP_Bioscan_CorePatch
         List<PlayerAgent> playersInScan,
         int playersMax)
     {
-        int actualCount = __instance.m_sync.GetCurrentState().playersInScan;
+        // Get counts for logging/HUD fix
+        int syncCount = __instance.m_sync.GetCurrentState().playersInScan;
         int listCount = playersInScan?.Count ?? 0;
 
         L.Verbose($"OnSyncStateChange: status={status}, puzzleIndex={__instance.m_puzzleIndex}");
-        L.Verbose($"  actualCount={actualCount}, listCount={listCount}, playersMax={playersMax}");
+        L.Verbose($"  syncCount={syncCount}, listCount={listCount}, playersMax={playersMax}");
 
         if (status != eBioscanStatus.Scanning)
             return;
 
-        // Fix travel scan movement - ALWAYS recalculate using actual count
-        // The original method uses listCount which is capped at 4 players,
-        // so we must recalculate the movement condition with the real count
-        if (__instance.IsMovable)
+        // Fix travel scan movement - only on master (clients receive synced state)
+        if (SNet.IsMaster && __instance.IsMovable)
         {
             var movingComp = __instance.m_movingComp;
             if (movingComp != null && movingComp.OnlyMoveWhenScannig)
             {
+                // Calculate true player count by checking positions ourselves
+                // Don't trust sync state - it may be stale due to movement feedback loop
+                int actualCount = CountPlayersInScan(__instance);
+
                 bool requireAll = __instance.m_playerScanner.ScanPlayersRequired.RequireAllPlayers();
                 bool requireSolo = __instance.m_playerScanner.ScanPlayersRequired.RequireSoloPlayer();
                 bool noRequirement = __instance.m_playerScanner.ScanPlayersRequired == PlayerRequirement.None;
 
-                // Recalculate using actual count instead of list count
                 bool shouldMove = noRequirement
                     || (requireAll && actualCount == playersMax)
                     || (requireSolo && actualCount == 1);
@@ -69,8 +72,8 @@ public static class CP_Bioscan_CorePatch
             }
         }
 
-        // HUD fix: only needed when actual count exceeds list count
-        if (actualCount <= listCount)
+        // HUD fix: only needed when sync count exceeds list count
+        if (syncCount <= listCount)
             return;
 
         L.LogExecutingMethod();
@@ -104,10 +107,35 @@ public static class CP_Bioscan_CorePatch
 
         __instance.m_hud.SetPlayerData(
             __instance.m_puzzleIndex,
-            actualCount,
+            syncCount,
             playersMax,
             localPlayerInScan,
             __instance.m_playerScanner.ScanPlayersRequired,
             __instance.m_playerScanner.ReduceWhenNoPlayer);
+    }
+
+    private static int CountPlayersInScan(CP_Bioscan_Core core)
+    {
+        var scanner = core.m_PlayerScannerComp?.TryCast<CP_PlayerScanner>();
+        if (scanner == null)
+            return 0;
+
+        float radiusSqr = scanner.Radius * scanner.Radius;
+        Vector3 scanPos = core.transform.position;
+        int count = 0;
+
+        var players = PlayerManager.PlayerAgentsInLevel;
+        for (int i = 0; i < players.Count; i++)
+        {
+            var player = players[i];
+            if (player != null && player.Alive)
+            {
+                float distSqr = (player.Position - scanPos).sqrMagnitude;
+                if (distSqr < radiusSqr)
+                    count++;
+            }
+        }
+
+        return count;
     }
 }
