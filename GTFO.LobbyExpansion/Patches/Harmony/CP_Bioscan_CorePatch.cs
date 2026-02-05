@@ -3,7 +3,6 @@ using ChainedPuzzles;
 using HarmonyLib;
 using Player;
 using SNetwork;
-using UnityEngine;
 
 namespace GTFO.LobbyExpansion.Patches.Harmony;
 
@@ -16,11 +15,9 @@ public static class CP_Bioscan_CorePatch
     {
         // Use m_HUDComp (public Component) instead of m_hud (private interface)
         var hud = __instance.m_HUDComp?.TryCast<CP_Bioscan_Hud>();
+
         if (hud != null)
-        {
             CP_Bioscan_HudPatch.HudToCoreMap[hud.GetInstanceID()] = __instance;
-            L.Verbose($"Registered HUD mapping: {hud.GetInstanceID()} -> Core");
-        }
     }
 
     [HarmonyPatch("OnSyncStateChange")]
@@ -32,11 +29,8 @@ public static class CP_Bioscan_CorePatch
         int playersMax)
     {
         // Get counts for logging/HUD fix
-        int syncCount = __instance.m_sync.GetCurrentState().playersInScan;
-        int listCount = playersInScan?.Count ?? 0;
-
-        L.Verbose($"OnSyncStateChange: status={status}, puzzleIndex={__instance.m_puzzleIndex}");
-        L.Verbose($"  syncCount={syncCount}, listCount={listCount}, playersMax={playersMax}");
+        var syncCount = __instance.m_sync.GetCurrentState().playersInScan;
+        var listCount = playersInScan?.Count ?? 0;
 
         if (status != eBioscanStatus.Scanning)
             return;
@@ -49,26 +43,20 @@ public static class CP_Bioscan_CorePatch
             {
                 // Calculate true player count by checking positions ourselves
                 // Don't trust sync state - it may be stale due to movement feedback loop
-                int actualCount = CountPlayersInScan(__instance);
+                var actualCount = CountPlayersInScan(__instance);
 
-                bool requireAll = __instance.m_playerScanner.ScanPlayersRequired.RequireAllPlayers();
-                bool requireSolo = __instance.m_playerScanner.ScanPlayersRequired.RequireSoloPlayer();
-                bool noRequirement = __instance.m_playerScanner.ScanPlayersRequired == PlayerRequirement.None;
+                var requireAll = __instance.m_playerScanner.ScanPlayersRequired.RequireAllPlayers();
+                var requireSolo = __instance.m_playerScanner.ScanPlayersRequired.RequireSoloPlayer();
+                var noRequirement = __instance.m_playerScanner.ScanPlayersRequired == PlayerRequirement.None;
 
-                bool shouldMove = noRequirement
-                    || (requireAll && actualCount == playersMax)
-                    || (requireSolo && actualCount == 1);
+                var shouldMove = noRequirement ||
+                                 (requireAll && actualCount == playersMax) ||
+                                 (requireSolo && actualCount == 1);
 
                 if (shouldMove)
-                {
-                    L.Verbose($"Resuming movement: actualCount={actualCount}, playersMax={playersMax}");
                     movingComp.ResumeMovement();
-                }
                 else
-                {
-                    L.Verbose($"Pausing movement: actualCount={actualCount}, playersMax={playersMax}");
                     movingComp.PauseMovement();
-                }
             }
         }
 
@@ -76,32 +64,27 @@ public static class CP_Bioscan_CorePatch
         if (syncCount <= listCount)
             return;
 
-        L.LogExecutingMethod();
+        var localPlayerInScan = false;
 
-        bool localPlayerInScan = false;
         if (__instance.enabled && playersInScan != null)
         {
-            for (int i = 0; i < listCount; i++)
-            {
+            for (var i = 0; i < listCount; i++)
                 if (playersInScan[i] != null && playersInScan[i].IsLocallyOwned)
                 {
                     localPlayerInScan = true;
                     break;
                 }
-            }
         }
 
-        if (!localPlayerInScan)
+        if (!localPlayerInScan && PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
         {
-            if (PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
+            var scanner = __instance.m_PlayerScannerComp?.TryCast<CP_PlayerScanner>();
+
+            if (scanner != null)
             {
-                var scanner = __instance.m_PlayerScannerComp?.TryCast<CP_PlayerScanner>();
-                if (scanner != null)
-                {
-                    float radius = scanner.Radius;
-                    float distSqr = (localPlayer.Position - __instance.transform.position).sqrMagnitude;
-                    localPlayerInScan = distSqr < radius * radius;
-                }
+                var radius = scanner.Radius;
+                var distSqr = (localPlayer.Position - __instance.transform.position).sqrMagnitude;
+                localPlayerInScan = distSqr < radius * radius;
             }
         }
 
@@ -117,20 +100,23 @@ public static class CP_Bioscan_CorePatch
     private static int CountPlayersInScan(CP_Bioscan_Core core)
     {
         var scanner = core.m_PlayerScannerComp?.TryCast<CP_PlayerScanner>();
+
         if (scanner == null)
             return 0;
 
-        float radiusSqr = scanner.Radius * scanner.Radius;
-        Vector3 scanPos = core.transform.position;
-        int count = 0;
-
+        var radiusSqr = scanner.Radius * scanner.Radius;
+        var scanPos = core.transform.position;
+        var count = 0;
         var players = PlayerManager.PlayerAgentsInLevel;
-        for (int i = 0; i < players.Count; i++)
+
+        for (var i = 0; i < players.Count; i++)
         {
             var player = players[i];
+
             if (player != null && player.Alive)
             {
-                float distSqr = (player.Position - scanPos).sqrMagnitude;
+                var distSqr = (player.Position - scanPos).sqrMagnitude;
+
                 if (distSqr < radiusSqr)
                     count++;
             }
