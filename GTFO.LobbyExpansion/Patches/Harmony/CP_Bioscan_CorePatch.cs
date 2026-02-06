@@ -66,14 +66,12 @@ public static class CP_Bioscan_CorePatch
         var localPlayerInScan = false;
 
         if (__instance.enabled && playersInScan != null)
-        {
             for (var i = 0; i < listCount; i++)
                 if (playersInScan[i] != null && playersInScan[i].IsLocallyOwned)
                 {
                     localPlayerInScan = true;
                     break;
                 }
-        }
 
         if (!localPlayerInScan && PlayerManager.TryGetLocalPlayerAgent(out var localPlayer) && localPlayer.Alive)
         {
