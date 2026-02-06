@@ -11,6 +11,11 @@ public static class CP_Bioscan_HudPatch
     // stable int key instead of object reference
     internal static readonly Dictionary<int, CP_Bioscan_Core> HudToCoreMap = new();
 
+    internal static void OnLevelCleanup()
+    {
+        HudToCoreMap.Clear();
+    }
+
     [HarmonyPatch(nameof(CP_Bioscan_Hud.SetPlayerData))]
     [HarmonyPostfix]
     public static void SetPlayerData__Postfix(CP_Bioscan_Hud __instance)
