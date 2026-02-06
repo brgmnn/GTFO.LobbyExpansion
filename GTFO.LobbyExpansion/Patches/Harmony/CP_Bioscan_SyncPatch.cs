@@ -17,11 +17,9 @@ public static class CP_Bioscan_SyncPatch
         if (playersInScan == null || playersInScan.Count <= 4)
             return;
 
-        L.LogExecutingMethod();
-
-        // The switch statement in SetStateData only handles cases 1-4.
-        // When count > 4, no player references are set, leaving stale data.
-        // Fill all 4 available struct slots with the first 4 players (with null checks).
+        // The switch statement in SetStateData only handles cases 1-4
+        // When count > 4, no player references are set, leaving stale data
+        // Fill all 4 available struct slots with the first 4 players
         if (playersInScan[0]?.Owner != null)
             __instance.m_latestState.playerInScan1.SetPlayer(playersInScan[0].Owner);
         if (playersInScan[1]?.Owner != null)
