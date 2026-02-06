@@ -17,8 +17,6 @@ public static class CP_Bioscan_HudPatch
         if (__instance.m_progressBarPlayerChar.Length >= PluginConfig.MaxPlayers)
             return;
 
-        L.Verbose($"Expanding {nameof(__instance.m_progressBarPlayerChar)} from {__instance.m_progressBarPlayerChar.Length} to {PluginConfig.MaxPlayers}.");
-
         __instance.m_progressBarPlayerChar = PluginConfig.GetBioscanLetters();
     }
 
@@ -33,16 +31,16 @@ public static class CP_Bioscan_HudPatch
     [HarmonyPrefix]
     public static void Update__Prefix(CP_Bioscan_Hud __instance)
     {
-        if (!HudToCoreMap.TryGetValue(__instance.GetInstanceID(), out var core))
+        if (!HudToCoreMap.TryGetValue(__instance.GetInstanceID(), out var bioscanCore))
             return;
 
-        // Check core is still valid (Il2Cpp object could be destroyed)
-        if (core == null || core.WasCollected)
+        // Ensure bioscan core is valid
+        if (bioscanCore == null || bioscanCore.WasCollected)
             return;
 
-        var state = core.m_sync.GetCurrentState();
+        var state = bioscanCore.m_sync.GetCurrentState();
 
-        // Only update during active scan states (not Disabled/Finished/TimedOut)
+        // Only update during active scan states
         if (state.status == eBioscanStatus.Disabled ||
             state.status == eBioscanStatus.Finished ||
             state.status == eBioscanStatus.TimedOut)

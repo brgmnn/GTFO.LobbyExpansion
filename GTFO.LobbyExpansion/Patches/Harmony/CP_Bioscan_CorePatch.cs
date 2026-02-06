@@ -13,7 +13,6 @@ public static class CP_Bioscan_CorePatch
     [HarmonyPostfix]
     public static void Setup__Postfix(CP_Bioscan_Core __instance)
     {
-        // Use m_HUDComp (public Component) instead of m_hud (private interface)
         var hud = __instance.m_HUDComp?.TryCast<CP_Bioscan_Hud>();
 
         if (hud != null)
