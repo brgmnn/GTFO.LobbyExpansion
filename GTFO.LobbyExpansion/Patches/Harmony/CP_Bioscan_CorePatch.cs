@@ -38,6 +38,7 @@ public static class CP_Bioscan_CorePatch
         if (SNet.IsMaster && __instance.IsMovable)
         {
             var movingComp = __instance.m_movingComp;
+
             if (movingComp != null && movingComp.OnlyMoveWhenScannig)
             {
                 // Calculate true player count by checking positions ourselves

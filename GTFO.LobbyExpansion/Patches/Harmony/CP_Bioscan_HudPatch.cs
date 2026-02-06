@@ -7,7 +7,8 @@ namespace GTFO.LobbyExpansion.Patches.Harmony;
 [HarmonyPatch(typeof(CP_Bioscan_Hud))]
 public static class CP_Bioscan_HudPatch
 {
-    // Map HUD instance ID to Core (stable int key instead of object reference)
+    // Map HUD instance ID to Core
+    // stable int key instead of object reference
     internal static readonly Dictionary<int, CP_Bioscan_Core> HudToCoreMap = new();
 
     [HarmonyPatch(nameof(CP_Bioscan_Hud.SetPlayerData))]
@@ -27,7 +28,7 @@ public static class CP_Bioscan_HudPatch
         HudToCoreMap.Remove(__instance.GetInstanceID());
     }
 
-    [HarmonyPatch("Update")]  // Use string for private method
+    [HarmonyPatch("Update")]
     [HarmonyPrefix]
     public static void Update__Prefix(CP_Bioscan_Hud __instance)
     {
@@ -41,9 +42,7 @@ public static class CP_Bioscan_HudPatch
         var state = bioscanCore.m_sync.GetCurrentState();
 
         // Only update during active scan states
-        if (state.status == eBioscanStatus.Disabled ||
-            state.status == eBioscanStatus.Finished ||
-            state.status == eBioscanStatus.TimedOut)
+        if (state.status is eBioscanStatus.Disabled or eBioscanStatus.Finished or eBioscanStatus.TimedOut)
             return;
 
         // Override with authoritative count from sync state
