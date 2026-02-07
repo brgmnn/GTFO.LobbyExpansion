@@ -33,7 +33,7 @@ public static class CP_Bioscan_CorePatch
         if (status != eBioscanStatus.Scanning)
             return;
 
-        // Fix travel scan movement for >4 players - run on all machines to prevent desync
+        // Fix travel scan movement for >4 players
         if (__instance.IsMovable)
         {
             var movingComp = __instance.m_movingComp;
